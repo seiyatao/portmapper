@@ -1,11 +1,81 @@
-<div align="center">
+# Windows 端口映射服务 (Port Mapper)
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+一个基于 Go 语言开发的轻量、稳定且易于部署的 Windows TCP/UDP 端口映射服务。
 
-  <h1>Built with AI Studio</h2>
+## 功能特点
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+- 支持 TCP 和 UDP 端口映射
+- 基于 JSON 的简单配置
+- 支持多条规则并发运行
+- 深度集成 Windows 服务 (支持安装、启动、停止、卸载)
+- 支持前台调试模式
+- 优雅退出与资源回收
+- 极低的系统资源占用
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## 编译指南
 
-</div>
+```bash
+go build -o portmapper.exe ./cmd/portmapper
+```
+
+## 使用说明
+
+### 配置文件
+
+在可执行文件同级目录下创建 `config.json` 文件：
+
+```json
+{
+  "service_name": "PortMapper",
+  "log_path": "logs/portmapper.log",
+  "rules": [
+    {
+      "name": "web-tcp",
+      "enabled": true,
+      "protocol": "tcp",
+      "listen": "0.0.0.0:8080",
+      "target": "192.168.1.100:80",
+      "timeout_seconds": 300
+    },
+    {
+      "name": "dns-udp",
+      "enabled": true,
+      "protocol": "udp",
+      "listen": "0.0.0.0:5353",
+      "target": "192.168.1.101:5353",
+      "timeout_seconds": 60
+    }
+  ]
+}
+```
+
+### 命令行指令
+
+- 以前台模式运行 (用于测试和调试):
+  ```cmd
+  portmapper.exe run
+  ```
+  或者指定配置文件:
+  ```cmd
+  portmapper.exe -config myconfig.json run
+  ```
+
+- 安装为 Windows 服务:
+  ```cmd
+  portmapper.exe install
+  ```
+
+- 启动服务:
+  ```cmd
+  portmapper.exe start
+  ```
+
+- 停止服务:
+  ```cmd
+  portmapper.exe stop
+  ```
+
+- 卸载服务:
+  ```cmd
+  portmapper.exe uninstall
+  ```

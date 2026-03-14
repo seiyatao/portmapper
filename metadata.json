@@ -1,0 +1,5 @@
+{
+  "name": "Windows Port Mapper",
+  "description": "A lightweight, stable, and easy-to-deploy Windows service for TCP/UDP port mapping, written in Go.",
+  "requestFramePermissions": []
+}

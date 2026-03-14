@@ -13,6 +13,7 @@ type Rule struct {
 	Listen         string `json:"listen"`          // 本地监听地址 (例如: 0.0.0.0:8080)
 	Target         string `json:"target"`          // 目标转发地址 (例如: 192.168.1.100:80)
 	TimeoutSeconds int    `json:"timeout_seconds"` // 超时时间(秒)
+	MaxConnections int    `json:"max_connections"` // 最大并发连接数/会话数
 }
 
 // Config 定义了整个服务的配置结构

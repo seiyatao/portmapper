@@ -6,7 +6,7 @@ import (
 	"net"
 	"strings"
 
-	"portmapper/internal/config"
+	"pc-edge-gateway/internal/config"
 )
 
 // ValidateConfig 校验配置文件的合法性
@@ -48,6 +48,15 @@ func ValidateConfig(cfg *config.Config) error {
 			if _, err := net.ResolveUDPAddr("udp", rule.Target); err != nil {
 				return fmt.Errorf("规则 %s: 无效的目标地址 %s", rule.Name, rule.Target)
 			}
+		}
+
+		if rule.TimeoutSeconds <= 0 {
+			return fmt.Errorf("规则 %s 的 timeout_seconds 必须大于 0", rule.Name)
+		}
+
+		if rule.MaxConnections <= 0 {
+			// 如果未配置或配置错误，设置一个合理的默认值
+			cfg.Rules[i].MaxConnections = 1000
 		}
 
 		// 检查监听端口冲突

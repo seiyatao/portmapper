@@ -5,19 +5,21 @@ import (
 	"io"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 
-	"portmapper/internal/config"
-	"portmapper/internal/logging"
+	"pc-edge-gateway/internal/config"
+	"pc-edge-gateway/internal/logging"
 )
 
 // TCPForwarder 负责处理单条 TCP 映射规则
 type TCPForwarder struct {
-	rule     config.Rule
-	listener net.Listener
-	ctx      context.Context
-	cancel   context.CancelFunc
-	wg       sync.WaitGroup
+	rule        config.Rule
+	listener    net.Listener
+	ctx         context.Context
+	cancel      context.CancelFunc
+	wg          sync.WaitGroup
+	activeConns int32
 }
 
 func NewTCPForwarder(rule config.Rule) *TCPForwarder {
@@ -72,6 +74,15 @@ func (f *TCPForwarder) acceptLoop() {
 			}
 		}
 
+		// 检查并发连接数限制
+		currentConns := atomic.LoadInt32(&f.activeConns)
+		if currentConns >= int32(f.rule.MaxConnections) {
+			logging.Warn("规则 %s 达到最大连接数限制 (%d)，拒绝新连接: %s", f.rule.Name, f.rule.MaxConnections, conn.RemoteAddr().String())
+			conn.Close()
+			continue
+		}
+
+		atomic.AddInt32(&f.activeConns, 1)
 		f.wg.Add(1)
 		go f.handleConnection(conn)
 	}
@@ -81,6 +92,7 @@ func (f *TCPForwarder) acceptLoop() {
 func (f *TCPForwarder) handleConnection(clientConn net.Conn) {
 	defer f.wg.Done()
 	defer clientConn.Close()
+	defer atomic.AddInt32(&f.activeConns, -1)
 
 	// 建立到目标地址的连接
 	targetConn, err := net.DialTimeout("tcp", f.rule.Target, time.Duration(f.rule.TimeoutSeconds)*time.Second)

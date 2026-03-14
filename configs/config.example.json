@@ -1,6 +1,6 @@
 {
-  "service_name": "MyPortMapper",
-  "log_path": "logs/portmapper.log",
+  "service_name": "pc-edge-gateway",
+  "log_path": "logs/pc-edge-gateway.log",
   "rules": [
     {
       "name": "web-tcp",
@@ -8,7 +8,8 @@
       "protocol": "tcp",
       "listen": "0.0.0.0:8080",
       "target": "192.168.1.100:80",
-      "timeout_seconds": 300
+      "timeout_seconds": 300,
+      "max_connections": 1000
     },
     {
       "name": "dns-udp",
@@ -16,7 +17,8 @@
       "protocol": "udp",
       "listen": "0.0.0.0:5353",
       "target": "192.168.1.101:5353",
-      "timeout_seconds": 60
+      "timeout_seconds": 60,
+      "max_connections": 1000
     }
   ]
 }

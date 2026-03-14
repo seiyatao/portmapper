@@ -1,4 +1,4 @@
-module portmapper
+module pc-edge-gateway
 
 go 1.21
 

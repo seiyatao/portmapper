@@ -4,8 +4,8 @@ import { FileJson, Settings, Shield, Server, FileCode2 } from 'lucide-react';
 export default function App() {
   const [activeTab, setActiveTab] = useState('readme');
   const [configContent, setConfigContent] = useState(`{
-  "service_name": "PortMapper",
-  "log_path": "logs/portmapper.log",
+  "service_name": "pc-edge-gateway",
+  "log_path": "logs/pc-edge-gateway.log",
   "rules": [
     {
       "name": "web-tcp",
@@ -13,7 +13,8 @@ export default function App() {
       "protocol": "tcp",
       "listen": "0.0.0.0:8080",
       "target": "192.168.1.100:80",
-      "timeout_seconds": 300
+      "timeout_seconds": 300,
+      "max_connections": 1000
     },
     {
       "name": "dns-udp",
@@ -21,7 +22,8 @@ export default function App() {
       "protocol": "udp",
       "listen": "0.0.0.0:5353",
       "target": "192.168.1.101:5353",
-      "timeout_seconds": 60
+      "timeout_seconds": 60,
+      "max_connections": 1000
     }
   ]
 }`);
@@ -72,10 +74,10 @@ export default function App() {
           
           <div className="space-y-1">
             <div className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 font-mono bg-zinc-900/50 rounded border border-zinc-800">
-              <span className="text-emerald-500">$</span> portmapper.exe install
+              <span className="text-emerald-500">$</span> pc-edge-gateway.exe install
             </div>
             <div className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 font-mono bg-zinc-900/50 rounded border border-zinc-800">
-              <span className="text-emerald-500">$</span> portmapper.exe start
+              <span className="text-emerald-500">$</span> pc-edge-gateway.exe start
             </div>
           </div>
         </aside>
@@ -121,14 +123,14 @@ export default function App() {
 
               <h2 className="text-xl font-medium text-zinc-200 mt-8 mb-4">编译指令</h2>
               <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 font-mono text-sm text-zinc-300">
-                go build -o portmapper.exe ./cmd/portmapper
+                go build -o pc-edge-gateway.exe ./cmd/pc-edge-gateway
               </div>
 
               <h2 className="text-xl font-medium text-zinc-200 mt-8 mb-4">项目结构</h2>
               <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 font-mono text-sm text-zinc-400 whitespace-pre">
-{`portmapper/
+{`pc-edge-gateway/
 ├── cmd/
-│  └── portmapper/
+│  └── pc-edge-gateway/
 │     └── main.go
 ├── internal/
 │  ├── config/

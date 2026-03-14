@@ -3,9 +3,9 @@ package manager
 import (
 	"strings"
 
-	"portmapper/internal/config"
-	"portmapper/internal/forward"
-	"portmapper/internal/logging"
+	"pc-edge-gateway/internal/config"
+	"pc-edge-gateway/internal/forward"
+	"pc-edge-gateway/internal/logging"
 )
 
 // Forwarder 定义了转发器的通用接口

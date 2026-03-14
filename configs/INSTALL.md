@@ -2,12 +2,12 @@
 
 ## 1. 准备配置文件
 
-在 `portmapper.exe` 同级目录下，创建一个名为 `config.json` 的文件。你可以参考 `configs/config.example.json`：
+在 `pc-edge-gateway.exe` 同级目录下，创建一个名为 `config.json` 的文件。你可以参考 `configs/config.example.json`：
 
 ```json
 {
-  "service_name": "MyPortMapper",
-  "log_path": "logs/portmapper.log",
+  "service_name": "pc-edge-gateway",
+  "log_path": "logs/pc-edge-gateway.log",
   "rules": [
     {
       "name": "web-tcp",
@@ -15,7 +15,8 @@
       "protocol": "tcp",
       "listen": "0.0.0.0:8080",
       "target": "192.168.1.100:80",
-      "timeout_seconds": 300
+      "timeout_seconds": 300,
+      "max_connections": 1000
     }
   ]
 }
@@ -28,27 +29,23 @@
 在正式安装为服务前，建议先以前台模式运行测试配置是否正确：
 
 ```cmd
-portmapper.exe run
+pc-edge-gateway.exe run
 ```
 
-如果配置文件不在默认路径，可以指定：
-
-```cmd
-portmapper.exe -config C:\path\to\config.json run
-```
+> **注意**: 程序会自动读取与 `pc-edge-gateway.exe` 同级目录下的 `config.json`。
 
 ## 3. 安装为 Windows 服务
 
 使用管理员权限打开命令提示符 (CMD) 或 PowerShell，执行：
 
 ```cmd
-portmapper.exe install
+pc-edge-gateway.exe install
 ```
 
 安装成功后，启动服务：
 
 ```cmd
-portmapper.exe start
+pc-edge-gateway.exe start
 ```
 
 ## 4. 停止与卸载服务
@@ -56,11 +53,11 @@ portmapper.exe start
 停止服务：
 
 ```cmd
-portmapper.exe stop
+pc-edge-gateway.exe stop
 ```
 
 卸载服务：
 
 ```cmd
-portmapper.exe uninstall
+pc-edge-gateway.exe uninstall
 ```

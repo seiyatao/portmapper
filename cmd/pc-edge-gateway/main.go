@@ -9,11 +9,11 @@ import (
 
 	"golang.org/x/sys/windows/svc"
 
-	"portmapper/internal/config"
-	"portmapper/internal/logging"
-	"portmapper/internal/manager"
-	"portmapper/internal/service"
-	"portmapper/internal/util"
+	"pc-edge-gateway/internal/config"
+	"pc-edge-gateway/internal/logging"
+	"pc-edge-gateway/internal/manager"
+	"pc-edge-gateway/internal/service"
+	"pc-edge-gateway/internal/util"
 )
 
 func main() {
@@ -126,7 +126,7 @@ func runForeground(cfg *config.Config) {
 }
 
 func printUsage() {
-	fmt.Println("用法: portmapper <命令>")
+	fmt.Println("用法: pc-edge-gateway <命令>")
 	fmt.Println("命令:")
 	fmt.Println("  install   - 安装为 Windows 服务")
 	fmt.Println("  uninstall - 卸载 Windows 服务")

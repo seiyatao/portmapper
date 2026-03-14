@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"portmapper/internal/config"
-	"portmapper/internal/logging"
+	"pc-edge-gateway/internal/config"
+	"pc-edge-gateway/internal/logging"
 )
 
 // UdpSession 维护一个 UDP 客户端到目标地址的会话
@@ -106,6 +106,13 @@ func (f *UDPForwarder) handlePacket(clientAddr *net.UDPAddr, data []byte) {
 	f.mu.Lock()
 	session, exists := f.sessions[clientAddr.String()]
 	if !exists {
+		// 检查并发会话数限制
+		if len(f.sessions) >= f.rule.MaxConnections {
+			f.mu.Unlock()
+			logging.Warn("规则 %s 达到最大会话数限制 (%d)，丢弃新客户端数据包: %s", f.rule.Name, f.rule.MaxConnections, clientAddr.String())
+			return
+		}
+
 		// 新客户端，创建到目标地址的连接
 		targetAddr, err := net.ResolveUDPAddr("udp", f.rule.Target)
 		if err != nil {

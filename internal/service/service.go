@@ -7,9 +7,9 @@ import (
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/mgr"
 
-	"portmapper/internal/config"
-	"portmapper/internal/logging"
-	"portmapper/internal/manager"
+	"pc-edge-gateway/internal/config"
+	"pc-edge-gateway/internal/logging"
+	"pc-edge-gateway/internal/manager"
 )
 
 // portMapperService 实现 Windows 服务的接口

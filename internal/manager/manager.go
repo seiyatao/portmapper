@@ -26,8 +26,9 @@ func NewManager(cfg *config.Config) *Manager {
 	}
 }
 
-// StartAll 启动所有已启用的映射规则
-func (m *Manager) StartAll() {
+// StartAll 启动所有已启用的映射规则，返回成功启动的规则数量
+func (m *Manager) StartAll() int {
+	count := 0
 	for _, rule := range m.cfg.Rules {
 		if !rule.Enabled {
 			continue
@@ -48,8 +49,10 @@ func (m *Manager) StartAll() {
 			logging.Error("规则 %s 启动失败: %v", rule.Name, err)
 		} else {
 			m.forwarders = append(m.forwarders, f)
+			count++
 		}
 	}
+	return count
 }
 
 // StopAll 停止所有正在运行的映射规则

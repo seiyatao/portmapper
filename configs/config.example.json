@@ -1,0 +1,22 @@
+{
+  "service_name": "MyPortMapper",
+  "log_path": "logs/portmapper.log",
+  "rules": [
+    {
+      "name": "web-tcp",
+      "enabled": true,
+      "protocol": "tcp",
+      "listen": "0.0.0.0:8080",
+      "target": "192.168.1.100:80",
+      "timeout_seconds": 300
+    },
+    {
+      "name": "dns-udp",
+      "enabled": true,
+      "protocol": "udp",
+      "listen": "0.0.0.0:5353",
+      "target": "192.168.1.101:5353",
+      "timeout_seconds": 60
+    }
+  ]
+}

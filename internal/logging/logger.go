@@ -23,7 +23,8 @@ type customWriter struct {
 
 func (w *customWriter) Write(p []byte) (n int, err error) {
 	timestamp := time.Now().Format("2006-01-02 15:04:05")
-	msg := fmt.Sprintf("%s [%s] %s\n", timestamp, w.level, string(p))
+	// log.Printf 已经自带换行符，因此这里不需要再加 \n
+	msg := fmt.Sprintf("%s [%s] %s", timestamp, w.level, string(p))
 	return w.out.Write([]byte(msg))
 }
 

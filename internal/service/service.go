@@ -30,12 +30,19 @@ func (m *portMapperService) Execute(args []string, r <-chan svc.ChangeRequest, c
 	}
 
 	// 初始化日志 (服务模式下输出到文件)
-	logging.InitLogger(cfg.LogPath, true)
+	if err := logging.InitLogger(cfg.LogPath, true); err != nil {
+		// 日志初始化失败，直接退出服务
+		return false, 1
+	}
 	logging.Info("服务已启动")
 
 	// 启动规则管理器
 	mgr := manager.NewManager(cfg)
-	mgr.StartAll()
+	startedCount := mgr.StartAll()
+	if startedCount == 0 {
+		logging.Error("没有成功启动任何规则，服务退出")
+		return false, 1
+	}
 
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
@@ -57,8 +64,8 @@ loop:
 }
 
 // RunService 启动 Windows 服务
-func RunService(cfgPath string) error {
-	return svc.Run("PortMapper", &portMapperService{cfgPath: cfgPath})
+func RunService(name, cfgPath string) error {
+	return svc.Run(name, &portMapperService{cfgPath: cfgPath})
 }
 
 // InstallService 安装 Windows 服务

@@ -150,14 +150,16 @@ func (f *UDPForwarder) targetReadLoop(session *UdpSession, clientKey string) {
 	defer func() {
 		session.TargetConn.Close()
 		f.mu.Lock()
-		delete(f.sessions, clientKey)
+		// 确保删除的是当前的 session，防止误删新建的同源 session
+		if currentSession, exists := f.sessions[clientKey]; exists && currentSession == session {
+			delete(f.sessions, clientKey)
+		}
 		f.mu.Unlock()
 	}()
 
 	buf := make([]byte, 65535)
 	for {
-		// 设置读取超时时间，超时后自动退出协程并清理会话
-		session.TargetConn.SetReadDeadline(time.Now().Add(time.Duration(f.rule.TimeoutSeconds) * time.Second))
+		// 移除 SetReadDeadline，依赖 cleanupLoop 来关闭超时连接
 		n, err := session.TargetConn.Read(buf)
 		if err != nil {
 			return
@@ -190,10 +192,11 @@ func (f *UDPForwarder) cleanupLoop() {
 			return
 		case now := <-ticker.C:
 			f.mu.Lock()
-			for key, session := range f.sessions {
+			for _, session := range f.sessions {
 				if now.Sub(session.LastActiveTime) > timeout {
+					// 仅关闭连接，这会导致 targetReadLoop 中的 Read 返回 error，
+					// 从而在 targetReadLoop 的 defer 中完成 map 的清理
 					session.TargetConn.Close()
-					delete(f.sessions, key)
 				}
 			}
 			f.mu.Unlock()

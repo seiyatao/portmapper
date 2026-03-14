@@ -93,10 +93,12 @@ func (f *TCPForwarder) handleConnection(clientConn net.Conn) {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
+	timeout := time.Duration(f.rule.TimeoutSeconds) * time.Second
+
 	// 客户端 -> 目标地址
 	go func() {
 		defer wg.Done()
-		io.Copy(targetConn, clientConn)
+		copyWithIdleTimeout(targetConn, clientConn, timeout)
 		// 关闭写入端，通知对方数据发送完毕
 		if tc, ok := targetConn.(*net.TCPConn); ok {
 			tc.CloseWrite()
@@ -106,7 +108,7 @@ func (f *TCPForwarder) handleConnection(clientConn net.Conn) {
 	// 目标地址 -> 客户端
 	go func() {
 		defer wg.Done()
-		io.Copy(clientConn, targetConn)
+		copyWithIdleTimeout(clientConn, targetConn, timeout)
 		if tc, ok := clientConn.(*net.TCPConn); ok {
 			tc.CloseWrite()
 		}
@@ -124,5 +126,34 @@ func (f *TCPForwarder) handleConnection(clientConn net.Conn) {
 		// 服务停止，强制断开连接
 	case <-done:
 		// 正常转发结束
+	}
+}
+
+// copyWithIdleTimeout 带有空闲超时的双向拷贝
+func copyWithIdleTimeout(dst net.Conn, src net.Conn, timeout time.Duration) error {
+	buf := make([]byte, 32*1024)
+	for {
+		if timeout > 0 {
+			src.SetReadDeadline(time.Now().Add(timeout))
+		}
+		nr, er := src.Read(buf)
+		if nr > 0 {
+			if timeout > 0 {
+				dst.SetWriteDeadline(time.Now().Add(timeout))
+			}
+			nw, ew := dst.Write(buf[0:nr])
+			if ew != nil {
+				return ew
+			}
+			if nr != nw {
+				return io.ErrShortWrite
+			}
+		}
+		if er != nil {
+			if er != io.EOF {
+				return er
+			}
+			return nil
+		}
 	}
 }

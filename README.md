@@ -27,6 +27,7 @@ go build -o pc-edge-gateway.exe ./cmd/pc-edge-gateway
 ```json
 {
   "service_name": "pc-edge-gateway",
+  "service_desc": "内部 TCP/UDP 端口映射服务",
   "log_path": "logs/pc-edge-gateway.log",
   "rules": [
     {

@@ -19,7 +19,7 @@ func ValidateConfig(cfg *config.Config) error {
 	// 用于检测是否存在重复的监听地址
 	listenMap := make(map[string]string)
 
-	for _, rule := range cfg.Rules {
+	for i, rule := range cfg.Rules {
 		if !rule.Enabled {
 			continue
 		}

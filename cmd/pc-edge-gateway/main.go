@@ -38,8 +38,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	serviceName := cfg.ServiceName
-
 	args := os.Args[1:]
 	if len(args) == 0 {
 		// 判断是否在交互式会话中运行 (即是否作为 Windows 服务运行)
@@ -50,7 +48,7 @@ func main() {
 		}
 		if !isInteractive {
 			// 作为 Windows 服务运行
-			if err := service.RunService(serviceName, configPath); err != nil {
+			if err := service.RunService(cfg); err != nil {
 				logging.Error("服务运行失败: %v", err)
 			}
 			return
@@ -63,28 +61,28 @@ func main() {
 	cmd := args[0]
 	switch cmd {
 	case "install":
-		err := service.InstallService(serviceName, "内部 TCP/UDP 端口映射服务")
+		err := service.InstallService(cfg)
 		if err != nil {
 			fmt.Printf("安装服务失败: %v\n", err)
 		} else {
 			fmt.Println("服务安装成功。")
 		}
 	case "uninstall":
-		err := service.UninstallService(serviceName)
+		err := service.UninstallService(cfg)
 		if err != nil {
 			fmt.Printf("卸载服务失败: %v\n", err)
 		} else {
 			fmt.Println("服务卸载成功。")
 		}
 	case "start":
-		err := service.StartService(serviceName)
+		err := service.StartService(cfg)
 		if err != nil {
 			fmt.Printf("启动服务失败: %v\n", err)
 		} else {
 			fmt.Println("服务启动成功。")
 		}
 	case "stop":
-		err := service.StopService(serviceName)
+		err := service.StopService(cfg)
 		if err != nil {
 			fmt.Printf("停止服务失败: %v\n", err)
 		} else {

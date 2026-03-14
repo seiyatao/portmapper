@@ -19,6 +19,7 @@ type Rule struct {
 // Config 定义了整个服务的配置结构
 type Config struct {
 	ServiceName string `json:"service_name"` // Windows 服务名称
+	ServiceDesc string `json:"service_desc"` // Windows 服务描述
 	LogPath     string `json:"log_path"`     // 日志文件路径
 	Rules       []Rule `json:"rules"`        // 映射规则列表
 }

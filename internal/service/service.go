@@ -12,32 +12,25 @@ import (
 	"pc-edge-gateway/internal/manager"
 )
 
-// portMapperService 实现 Windows 服务的接口
-type portMapperService struct {
-	cfgPath string
+// edgeGatewayService 实现 Windows 服务的接口
+type edgeGatewayService struct {
+	cfg *config.Config
 }
 
 // Execute 是 Windows 服务的核心执行逻辑
-func (m *portMapperService) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
+func (m *edgeGatewayService) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown
 	changes <- svc.Status{State: svc.StartPending}
 
-	// 加载配置
-	cfg, err := config.LoadConfig(m.cfgPath)
-	if err != nil {
-		logging.Error("加载配置失败: %v", err)
-		return
-	}
-
 	// 初始化日志 (服务模式下输出到文件)
-	if err := logging.InitLogger(cfg.LogPath, true); err != nil {
+	if err := logging.InitLogger(m.cfg.LogPath, true); err != nil {
 		// 日志初始化失败，直接退出服务
 		return false, 1
 	}
 	logging.Info("服务已启动")
 
 	// 启动规则管理器
-	mgr := manager.NewManager(cfg)
+	mgr := manager.NewManager(m.cfg)
 	startedCount := mgr.StartAll()
 	if startedCount == 0 {
 		logging.Error("没有成功启动任何规则，服务退出")
@@ -64,12 +57,12 @@ loop:
 }
 
 // RunService 启动 Windows 服务
-func RunService(name, cfgPath string) error {
-	return svc.Run(name, &portMapperService{cfgPath: cfgPath})
+func RunService(cfg *config.Config) error {
+	return svc.Run(cfg.ServiceName, &edgeGatewayService{cfg: cfg})
 }
 
 // InstallService 安装 Windows 服务
-func InstallService(name, desc string) error {
+func InstallService(cfg *config.Config) error {
 	exePath, err := os.Executable()
 	if err != nil {
 		return err
@@ -80,14 +73,19 @@ func InstallService(name, desc string) error {
 	}
 	defer m.Disconnect()
 
-	s, err := m.OpenService(name)
+	s, err := m.OpenService(cfg.ServiceName)
 	if err == nil {
 		s.Close()
-		return fmt.Errorf("服务 %s 已存在", name)
+		return fmt.Errorf("服务 %s 已存在", cfg.ServiceName)
 	}
 
-	s, err = m.CreateService(name, exePath, mgr.Config{
-		DisplayName: name,
+	desc := cfg.ServiceDesc
+	if desc == "" {
+		desc = "内部 TCP/UDP 端口映射服务"
+	}
+
+	s, err = m.CreateService(cfg.ServiceName, exePath, mgr.Config{
+		DisplayName: cfg.ServiceName,
 		Description: desc,
 		StartType:   mgr.StartAutomatic, // 设置为自动启动
 	})
@@ -100,16 +98,16 @@ func InstallService(name, desc string) error {
 }
 
 // UninstallService 卸载 Windows 服务
-func UninstallService(name string) error {
+func UninstallService(cfg *config.Config) error {
 	m, err := mgr.Connect()
 	if err != nil {
 		return err
 	}
 	defer m.Disconnect()
 
-	s, err := m.OpenService(name)
+	s, err := m.OpenService(cfg.ServiceName)
 	if err != nil {
-		return fmt.Errorf("服务 %s 未安装", name)
+		return fmt.Errorf("服务 %s 未安装", cfg.ServiceName)
 	}
 	defer s.Close()
 
@@ -122,14 +120,14 @@ func UninstallService(name string) error {
 }
 
 // StartService 启动已安装的 Windows 服务
-func StartService(name string) error {
+func StartService(cfg *config.Config) error {
 	m, err := mgr.Connect()
 	if err != nil {
 		return err
 	}
 	defer m.Disconnect()
 
-	s, err := m.OpenService(name)
+	s, err := m.OpenService(cfg.ServiceName)
 	if err != nil {
 		return fmt.Errorf("无法访问服务: %v", err)
 	}
@@ -144,14 +142,14 @@ func StartService(name string) error {
 }
 
 // StopService 停止正在运行的 Windows 服务
-func StopService(name string) error {
+func StopService(cfg *config.Config) error {
 	m, err := mgr.Connect()
 	if err != nil {
 		return err
 	}
 	defer m.Disconnect()
 
-	s, err := m.OpenService(name)
+	s, err := m.OpenService(cfg.ServiceName)
 	if err != nil {
 		return fmt.Errorf("无法访问服务: %v", err)
 	}
